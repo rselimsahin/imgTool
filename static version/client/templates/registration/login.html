@@ -1,0 +1,14 @@
+<br><br><br><br><br><br><br><br> 
+<div align="middle">
+	<h2>Please enter your credentials</h2>
+	<form method="post">
+	  {% csrf_token %}
+	  {{ form.as_p }}
+	  <button type="submit">Login</button>
+	</form>
+
+	<form action="/client/signup">
+    	<input type="submit" value="Sign up" />
+	</form>
+</div>
+</body>

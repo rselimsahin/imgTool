@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if user.is_authenticated %}
+<p align="right">
+    User:{{ username }},
+    <a href="/client/pwscreen">Set Password</a>,
+    <a href="{% url 'logout' %}">Logout</a>,
+    <a href="/admin/">Admin</a>
+    <br>
+
+    <a href="/client">Home</a>,
+    <a href="/client/image"> Images View</a>,
+    <a href="/client/usergroup"> Usergroup View</a>
+</p>
+
+<p>{% if message %}
+   <strong>{{ message }}</strong>
+   {% endif %}
+</p>
+
+{% comment %} Required to add extra filter "lookup" {% endcomment %}
+{% if current_image %}
+<img src="/media/{{ current_image.imagex }}" border="1" width="700">
+<p align="left"> <b>current image: {{ current_image.name }}</p>
+{% endif %}
+
+<div>
+<b>Load image</b>
+<form action="/client/load/" method="post">
+{% csrf_token %}
+<select name="image">
+{% for image in imagelist %}
+    <option value="{{image.name}}">{{image.name}} {{image.owner}}</option>
+{% endfor %}
+</select>
+<input type="submit" name="submit" value="Load"/>
+</div>
+</form>
+
+<div>
+<b>Save image</b>
+<form action="/client/save/" method="post">
+{% csrf_token %}
+<label for="name">Name:</label>
+<input type="text" name="name">
+<input type="submit" name="submit" value="Save"/>
+</div>
+</form>
+
+<div>
+<b>Set default action</b>
+<form action="/client/setDefault/" method="post">
+{% csrf_token %}
+<input type="text" name="action" size="5">
+<input type="submit" name="submit" value="SetDefault"/>
+</div>
+</form>
+
+<div>
+<b>Add new rule</b>
+<form action="/client/addRule/" method="post">
+{% csrf_token %}
+<label for="rule">Rule:</label>
+<input type="text" name="rule" >
+<label for="pos">Position:</label>
+<input type="number" name="pos" value=-1 size="1">
+<input type="submit" name="submit" value="AddRule"/>
+</div>
+</form>
+
+<div>
+<b>Delete existing rule</b>
+<form action="/client/delRule/" method="post">
+{% csrf_token %}
+<label for="pos">Position:</label>
+<input type="number" name="pos" size="2">
+<input type="submit" name="submit" value="DelRule"/>
+</div>
+</form>
+
+<b>Load an image from location</b>
+<form enctype="multipart/form-data" method="post" action="/client/loadImage/{{ username }}/">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" name="submit" value="LoadImage"/>
+</form>
+
+<div>
+<b>Set an image from buffer</b>
+<form action="/client/setImage/{{ username }}/" method="post">
+{% csrf_token %}
+<label for="buffer">Buffer:</label>
+<input type="text" name="buffer" size="10">
+<input type="submit" name="submit" value="SetImage"/>
+</div>
+</form>
+
+<b>Get image</b>
+<form method="post" action="/client/getImage/">
+{% csrf_token %}
+<input type="submit" name="submit" value="GetImage"/>
+</form>
+
+
+<b>Images List</b>
+{% if imagelist %}
+    <table border="1" cellspacing="1">
+    <tr>
+        <th>name</th>
+        <th>owner</th>
+        <th>rules</th>
+        <th>defaultAction</th>
+        <th>image</th>
+    </tr>
+{% for im in imagelist %}
+    <tr>
+	{% comment %} First column, delete and update links {% endcomment %}
+        <td>{{ im.name }}</td>
+        <td>{{ im.owner }}</td>
+        <td>{{ im.rules }}</td>
+        <td>{{ im.defaultAction }}</td>
+
+        <td><img src="/media/{{ im.imagex }}" border="0" width="40"></img></td>
+    </tr>
+{% endfor %}
+    </table>
+{% else %}
+    No images exist.
+{% endif %}
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">Login</a>
+{% endif %}
+ {% endblock %}
+

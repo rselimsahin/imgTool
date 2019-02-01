@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if user.is_authenticated %}
+<p align="right">
+    User:{{ username }},
+    <a href="/client/pwscreen">Set Password</a>,
+    <a href="{% url 'logout' %}">Logout</a>,
+    <a href="/admin/">Admin</a>
+    <br>
+
+    <a href="/client">Home</a>,
+    <a href="/client/image"> Images View</a>,
+    <a href="/client/usergroup"> Usergroup View</a>
+</p>
+
+{% load auth_extras %}
+
+{% if ulist %}
+    <table border="1" cellspacing="1">
+    <tr>
+        <th>user </th><th>groups </th>
+    </tr>
+
+{% for u in ulist %}
+    <tr>
+    {% comment %} First column, delete and update links {% endcomment %}
+        <td>{{ u.username }}</td><td>{{ u.username|get_groups:"garbage" }}</td>
+    </tr>
+{% endfor %}
+    </table>
+{% else %}
+    No users exist.
+{% endif %}
+<br>
+{% if glist %}
+    <table border="1" cellspacing="1">
+    <tr>
+        <th>group </th><th>users</th>
+    </tr>
+    {% for g in glist %}
+        <tr>
+            <td>{{ g.name }}</td><td>{{ g.name|get_users:"garbage" }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    No groups exist.
+{% endif %}
+
+<div>
+<b>Get groups of user</b>
+    <form action="/client/getGroups/" method="post">
+    {% csrf_token %}
+    <label for="username">Username:</label>
+    <input type="text" name="username" >
+    <input type="submit" name="submit" value="Get groups"/>
+</div>
+</form>
+
+{% if query_username %}
+    {{ query_username }} 's groups: 
+        {% if query_groups %}
+            {{ query_groups }}
+        {% else %}
+            No groups
+        {% endif %}
+{% else %}
+{% endif %}
+
+<div>
+<b>Get users of group</b>
+    <form action="/client/getUsers/" method="post">
+    {% csrf_token %}
+    <label for="groupname">Groupname:</label>
+    <input type="text" name="groupname" >
+    <input type="submit" name="submit" value="Get users"/>
+</div>
+</form>
+
+{% if query_groupname %}
+    {{ query_groupname }} 's groups: 
+        {% if query_users %}
+            {{ query_users }}
+        {% else %}
+            No users
+        {% endif %}
+{% else %}
+{% endif %}
+
+<div>
+<b>Check membership</b>
+    <form action="/client/isMember/" method="post">
+    {% csrf_token %}
+    <label for="username">Username:</label>
+    <input type="text" name="username" >
+    <label for="groupname">Groupname:</label>
+    <input type="text" name="groupname" >
+    <input type="submit" name="submit" value="Is member"/>
+</div>
+</form>
+
+{% if isMember_called %}
+    {% if check_result %}
+        {{ isMember_username }} is in the group {{ isMember_groupname }} 
+    {% else %}
+        {{ isMember_username }} is not in the group {{ isMember_groupname }} 
+    {% endif %}
+{% else %}
+{% endif %}
+
+{% else %}
+  <p>You are not logged in</p>
+  <a href="{% url 'login' %}">login</a>
+{% endif %}
+ {% endblock %}
+
