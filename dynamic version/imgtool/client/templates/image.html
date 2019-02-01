@@ -1,0 +1,669 @@
+{% extends 'base.html' %}
+{% block content %}
+
+{% if user.is_authenticated %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>    
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" >
+        <a class="navbar-brand" href="/client">
+                <img src="media/imgtool_icon_trans.png" width="30" height="30" alt="">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/client">Home </a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/client/image">Images View<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/client/usergroup">UserGroup View</a>
+            </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <span class="navbar-text" style="color:aquamarine">
+                    User:{{ username }}
+                </span>
+                <li class="nav-item">
+                    <a class="nav-link" href="/client/pwscreen">Set Password</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/">Admin</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+<!--<p align="right">
+    User:{{ username }},
+    <a href="/client/pwscreen">Set Password</a>,
+    <a href="{% url 'logout' %}">Logout</a>,
+    <a href="/admin/">Admin</a>
+    <br>
+
+    <a href="/client">Home</a>,
+    <a href="/client/image"> Images View</a>,
+    <a href="/client/usergroup"> Usergroup View</a>
+</p>-->
+
+
+
+
+
+
+<div class="p-3 mb-2 text-dark">
+    <div id="div_main" class="container">
+
+
+        <p>{% if message %}
+                <strong>{{ message }}</strong>
+                {% endif %}
+                </p>
+        {% comment %} Required to add extra filter "lookup" {% endcomment %}
+            
+            <div id="div_img"></div>
+            
+            
+            <div>
+                <div>
+                <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Load or save images on our database">
+                    <button class="btn btn-info" data-toggle="collapse" href="#div_loadnsave" aria-expanded="false" aria-controls="div_loadnsave">
+                        Load&Save
+                    </button>
+                </span>
+                    
+                <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Upload your image from your computer or via buffer">
+                    <button class="btn btn-info" data-toggle="collapse" href="#div_upload" aria-expanded="false" aria-controls="div_upload">
+                        Image Upload
+                    </button>
+                </span>
+                   
+                <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Tools for image annotation">
+                    <button class="btn btn-info" data-toggle="collapse" href="#div_tools" aria-expanded="false" aria-controls="div_tools">
+                        Annotation Tools
+                    </button>
+                </span>
+
+                    
+                <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Add a rule to your image">
+                    <button class="btn btn-info" data-toggle="collapse" href="#div_canv_coll" aria-expanded="false" aria-controls="div_canv_coll">
+                        Canvas
+                    </button>
+                </span>
+
+                <div class="collapse" id="div_loadnsave">
+                    <div id="div_load">
+                    <b>Load image</b>
+                    <form class="form-group" id="id_load" action="/client/load/" method="post">
+                    {% csrf_token %}
+                    {% block load %}
+                    <script type="text/javascript">
+                    $('#id_load').on('submit',function(e){
+                        e.preventDefault();
+                        //console.log("load");
+                        $.ajax({
+                            type:'POST',
+                            url:'/client/load/',
+                            data:{
+                                image:$('#id_image').val(),
+                                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            success:function(data){
+                                //console.log("<img id=\"current_img\" src=\"/media/"+data+"/\" border=\"1\" width=\"700\">")
+                                
+                                $('#div_img').html("<img id=\"current_img\" src=\"/media/"+data+"/\" border=\"1\" width=\"700\">");
+                                
+                            
+
+                                $('#div_img').show();
+                                setTimeout(function(){
+                                    var img=document.getElementById("current_img");
+                                    var callback=function(img){
+                                    var canvas = document.getElementById("cv");
+                                    var ctx=canvas.getContext("2d");
+                                    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+                                    ctx.drawImage(img,0,0);}
+                                    if(img.complete){
+                                        callback(img);
+                                    }
+                                    else{
+                                        img.onload=callback;
+                                    }
+                                }, 2000); 
+                            },
+                            failure:function(){
+                                    alert("fail");
+                            }
+                        });
+                    });
+                    </script>
+                    {% endblock %}
+                    <select name="image" id="id_image" class="form-control" style="width:40%">
+                    {% for image in imagelist %}
+                        <option value="{{image.name}}">{{image.name}} {{image.owner}}</option>
+                    {% endfor %}
+                    </select>
+                    <input type="submit" class="btn btn-primary" name="submit" value="Load"/>
+                    </div>
+                    </form>
+
+                    <div id="div_save">
+                    <b>Save image</b>
+                    <form class="form-group" id="id_save" action="/client/save/" method="post">
+                    {% csrf_token %}
+                    {% block save %}
+                    <script type="text/javascript">
+                    $('#id_save').on('submit',function(e){
+                        e.preventDefault();
+                        //console.log("save");
+                        $.ajax({
+                            type:'POST',
+                            url:'/client/save/',
+                            data:{
+                                name:$('#id_name').val(),
+                                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            success:function(data){
+                                    alert("Image Saved!");
+                            },
+                            failure:function(){
+                                    alert("fail");
+                            }
+                        });
+                    });
+                    </script>
+                    {% endblock %}
+                    <label for="name">Name:</label>
+                    <input class="form-control" style="width:30%" type="text" id="id_name" name="name">
+                    <input type="submit" class="btn btn-primary" name="submit" value="Save"/>
+                    </form>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="collapse" id="div_tools">
+                <div id="div_tools">
+                    <div id="div_setDefault">
+                    <b>Set default action</b>
+                    <form class="form-group" id="id_setDefault" action="/client/setDefault/" method="post">
+                    {% csrf_token %}
+                    {% block setDefault %}
+                    <script type="text/javascript">
+                    $('#id_setDefault').on('submit',function(e){
+                        e.preventDefault();
+                        //console.log("set default");
+                        $.ajax({
+                            type:'POST',
+                            url:'/client/setDefault/',
+                            data:{
+                                action:$('#id_action').val(),
+                                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            success:function(data){
+                                if(data=="You Are Not Privilaged!"){
+                                    alert("You Are Not Privilaged!");
+                                }
+                                else{   
+                                    alert("Default Action Set!");
+                                }
+                            },
+                            failure:function(){
+                                    alert("fail");
+                            }
+                        });
+                    });
+                    </script>
+                    {% endblock %}
+                    <select name="action" id="id_action" class="form-control" style="width:25%">
+                    <option value="DENY">DENY</option>
+                    <option value="ALLOW">ALLOW</option>
+                    <option value="BLUR">BLUR</option>
+                    <input type="submit" class="btn btn-primary" name="submit" value="SetDefault"/>
+                    </div>
+                    </form>
+
+                    <div id="div_addRule" >
+                    <b>Add new rule</b>
+                    <form class="form-group" id="id_addRule" action="/client/addRule/" method="post">
+                    {% csrf_token %}
+                    {% block addrule %}
+                    <script type="text/javascript">
+                    $('#id_addRule').on('submit',function(e){
+                        e.preventDefault();
+                        //console.log("here");
+                        $.ajax({
+                            type:'POST',
+                            url:'/client/addRule/',
+                            data:{
+                                rule:$('#id_rule').val(),
+                                pos:$('#id_pos').val(),
+                                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                            },
+                            success:function(data){
+                                if(data=="You Are Not Privilaged!"){
+                                    alert("You Are Not Privilaged!");
+                                }
+                                else{   
+                                    alert("Rule Added!");
+                                    $('#div_addRule_out').html("<p>"+JSON.stringify(data)+"</p>");
+                                }
+                            }
+                        });
+                    });
+                    </script>
+                    {% endblock %}
+                    {% csrf_token %}
+                    <label for="rule">Rule(ex->("g:under18",("CIRCLE",0,0,30),"DENY")):</label>
+                    <input class="form-control" id="id_rule" style="width:50%"  type="text" name="rule" >
+                    <label for="pos">Position:</label>
+                    <input class="form-control" id="id_pos" style="width:15%" type="number" name="pos" value=-1 size="1">
+                    <input type="submit" id="btn_addRule" class="btn btn-primary" name="submit" value="AddRule"/>
+                    </form>
+                    </div>
+                    <div id="div_addRule_out"></div>
+
+                    <div id="div_delRule">
+                        <b>Delete existing rule</b>
+                        <form  class="form-group" id="id_delRule" action="/client/delRule/" method="post">
+                        {% csrf_token %}
+                        {% block delRule %}
+                        <script type="text/javascript">
+                        $('#id_delRule').on('submit',function(e){
+                            e.preventDefault();
+                            //console.log("del rule");
+                            $.ajax({
+                                type:'POST',
+                                url:'/client/delRule/',
+                                data:{
+                                    pos:$('#id_pos').val(),
+                                    csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                                },
+                                success:function(data){
+                                    if(data=="You Are Not Privilaged!"){
+                                        alert("You Are Not Privilaged!");
+                                    }
+                                    else{   
+                                        alert("Rule Deleted!");
+                                        $('#div_delRule_out').html("<p>"+JSON.stringify(data)+"</p>");
+                                    }
+                                },
+                                failure:function(){
+                                        alert("fail");
+                                }
+                            });
+                        });
+                        </script>
+                        {% endblock %}
+                        <label for="pos">Position:</label>
+                        <input class="form-control" id="id_pos" style="width:15%" type="number" name="pos" size="2">
+                        <input type="submit" class="btn btn-primary" name="submit" value="DelRule"/>
+                        </form>
+                    </div>
+                    <div id="div_delRule_out"></div>
+                </div>
+            </div>
+            <div>
+                <div class="collapse" id="div_upload">
+                    <div id="div_loadImage">
+                    <b>Load an image from location</b>
+                    <form class="form-group" id="id_loadImage" enctype="multipart/form-data" method="post" action="/client/loadImage/{{ username }}/">
+                    {% csrf_token %}
+
+                    {{ form.as_p }}
+
+                    {% block loadImage %}
+                    <script type="text/javascript">
+                    $('#id_loadImage').on('submit',function(e){
+                        e.preventDefault();
+                        //console.log("load image");
+                        var form = new FormData($(this)[0]);
+                        $.ajax({
+                            type:'POST',
+                            url:'/client/loadImage/{{ username }}/',
+                            data:form,
+                            processData: false,
+                            contentType: false,
+                            success:function(data){
+                                //console.log("<img src=\"/media/"+data+"/\" border=\"1\" width=\"700\">");
+                                alert("Image Loaded From File!");
+                                
+                                $('#div_img').html("<img id=\"current_img\" src=\"/media/"+data+"/\" border=\"1\" width=\"700\">");
+                                $('#div_img').show();
+                                setTimeout(function(){
+                                    var img=document.getElementById("current_img");
+                                    var callback=function(img){
+                                    var canvas = document.getElementById("cv");
+                                    var ctx=canvas.getContext("2d");
+                                    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+                                    ctx.drawImage(img,0,0);}
+                                    if(img.complete){
+                                        callback(img);
+                                    }
+                                    else{
+                                        img.onload=callback;
+                                    }
+                                }, 2000); 
+                            },
+                            failure:function(){
+                                    alert("fail");
+                            }
+                        });
+                    });
+                    </script>
+                    {% endblock %}
+                    <input type="submit" id="btn_loadImage" class="btn btn-primary" name="submit" value="LoadImage"/>
+                    </form>
+                    </div>
+
+                    <div>
+                    <b>Set an image from buffer</b>
+                    <form class="form-group" id="id_setImage" action="/client/setImage/{{ username }}/" method="post">
+                    {% csrf_token %}
+                    {% block setImage %}
+                    <script type="text/javascript">
+                    $('#id_setImage').on('submit',function(e){
+                        e.preventDefault();
+                        alert("set image from buffer");
+                        
+                    });
+                    </script>
+                    {% endblock %}
+                    <label for="buffer">Buffer(byte array or nparray format!):</label>
+                    <input class="form-control" style="width:50%" type="text" name="buffer" size="10">
+                    <input type="submit" class="btn btn-primary" name="submit" value="SetImage"/>
+                    </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div id="div_cv_container">
+            <div class="collapse" id="div_canv_coll">
+                <div id="div_cv">
+                    <canvas id="cv" width="500" height="500" style="border:1px solid #d3d3d3;"></canvas>
+                </div>
+
+                    <div id="div_snd_canvas">
+                        <b>Add Rule via Canvas</b>
+                        <form class="form-group" id="id_snd_canvas" method="post"">
+                        {% csrf_token %}
+                        {% block snd_canvas %}
+                        <script type="text/javascript">
+                        $('#id_snd_canvas').on('submit',function(e){
+                            e.preventDefault();
+                            //console.log("snd_canvas");
+                            var canvas=document.getElementById("cv");
+                            var posx;
+                            var posy;
+                            var posx2;
+                            var posy2;
+                            var drawing=false;
+                            canvas.addEventListener('mousedown', function(event){
+                                var pos=getPos(canvas,event);
+                                posx=pos.x;
+                                posy=pos.y;
+                            });
+                            canvas.addEventListener('mouseup', function(event){
+                                drawing=true;
+                                var pos=getPos(canvas,event);
+                                posx2=pos.x;
+                                posy2=pos.y;
+                                draw(canvas, posx, posy, posx2, posy2);
+                            });
+                            function getPos(canvas,event){
+                                var border=canvas.getBoundingClientRect();
+                                return{
+                                    x:event.clientX-border.left,
+                                    y:event.clientY-border.top
+                                };
+                            }
+                            function draw(canvas, posx, posy, posx2, posy2){
+                                if(drawing){
+                                    var context=canvas.getContext("2d");
+                                    if($("#id_shape").val()=="RECTANGLE"){
+                                        context.fillRect(posx,posy, posx2-posx, posy2-posy);
+                                        $.ajax({
+                                            type:'POST',
+                                            url:'/client/addRule/',
+                                            data:{
+                                                rule:"[\""+$("#id_regex").val()+"\",[\""+$("#id_shape").val()+"\","+Math.round(posx)+","+Math.round(posy)+","+Math.round(posx2)+","+Math.round(posy2)+"],\""+$("#id_option").val()+"\"]",
+                                                pos:-1,
+                                                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                                            },
+                                            success:function(data){
+                                                //console.log("!!");
+                                                if(data=="You Are Not Privilaged!"){
+                                                    alert("You Are Not Privilaged!");
+                                                }
+                                                else{   
+                                                    alert("Rule Added!");
+                                                    //console.log("[[\"g:under18\",[\"RECTANGLE\","+posx+","+posy+","+(posx2-posx)+","+(posy2-posy)+"],\"DENY\"]");
+                                                    $('#div_addRule_out').html("<p>"+JSON.stringify(data)+"</p>");
+                                                }
+                                            },
+                                            failure:function(){
+                                                //console.log("??");
+                                            }
+                                        });
+                                    }
+                                    else if($("#id_shape").val()=="CIRCLE"){
+                                        context.fillStyle = "#000000";
+                                        context.beginPath();
+                                        context.arc(posx, posy, Math.sqrt((posy2-posy)*(posy2-posy)+(posx2-posx)*(posx2-posx)), 0, 2 * Math.PI);
+                                        context.fill();
+                                        $.ajax({
+                                            type:'POST',
+                                            url:'/client/addRule/',
+                                            data:{
+                                                rule:"[\""+$("#id_regex").val()+"\",[\""+$("#id_shape").val()+"\","+Math.round((posx+posx2)/2)+","+Math.round((posy+posy2)/2)+","+ Math.round(Math.sqrt((posy2-posy)*(posy2-posy)+(posx2-posx)*(posx2-posx)))+"],\""+$("#id_option").val()+"\"]",
+                                                pos:-1,
+                                                csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                                            },
+                                            success:function(data){
+                                                //console.log("!!");
+                                                if(data=="You Are Not Privilaged!"){
+                                                    alert("You Are Not Privilaged!");
+                                                }
+                                                else{   
+                                                    alert("Rule Added!");
+                                                    //console.log("[[\"g:under18\",[\"RECTANGLE\","+posx+","+posy+","+(posx2-posx)+","+(posy2-posy)+"],\"DENY\"]");
+                                                    $('#div_addRule_out').html("<p>"+JSON.stringify(data)+"</p>");
+                                                }
+                                            },
+                                            failure:function(){
+                                                //console.log("??");
+                                            }
+                                        });
+                                    }
+                                    else{
+                                        alert("Please add Polylines Rule Manually")
+                                    }
+                                    
+                                }
+                                drawing=false;
+                            }
+                        });
+                        </script>
+                        {% endblock %}
+
+                        <label for="regex">Regex(g:under18):</label>
+                        <input class="form-control" id="id_regex" style="width:25%"  type="text" name="regex"  >
+
+                        <select name="shape" id="id_shape" class="form-control" style="width:25%">
+                            <option value="RECTANGLE">RECTANGLE</option>
+                            <option value="CIRCLE">CIRCLE</option>
+                            <option value="POLYLINES">POLYLINES</option>
+                            </select>
+                    
+                            <select name="option" id="id_option" class="form-control" style="width:25%">
+                            <option value="ALLOW">ALLOW</option>
+                            <option value="DENY">DENY</option>
+                            <option value="BLUR">BLUR</option>
+                            </select>
+                        <input type="submit" id="btn_snd_canvas" class="btn btn-primary" name="submit" value="Draw The Shape and Submit"/>
+                        </form>
+
+                        <div id="div_resize_canvas">
+                            <b>Resize Canvas</b>
+                            <form class="form-group" id="id_resize_canvas" method="post"">
+                            {% csrf_token %}
+                            {% block resize_canvas %}
+                            <script type="text/javascript">
+                            $('#id_resize_canvas').on('submit',function(e){
+                                e.preventDefault();
+                                //console.log("resize_canvas");
+                                $('#div_cv').html(
+                                            "<canvas id=\"cv\" width=\""+$('#id_wscale').val()+"\" height=\""+$('#id_hscale').val()+"\" " +
+                                            "style=\"border:1px solid #d3d3d3;\">" +
+                                            "Your browser does not support the HTML5 canvas tag." +
+                                            "</canvas>"
+                                            );
+                            });
+                            </script>
+                            {% endblock %}
+                            
+                            <select name="wscale" id="id_wscale" class="form-control" style="width:25%">
+                            <option value="1920">1920</option>
+                            <option value="1024">1024</option>
+                            <option value="800">800</option>
+                            </select>
+
+                            <select name="hscale" id="id_hscale" class="form-control" style="width:25%">
+                            <option value="1080">1080</option>
+                            <option value="768">768</option>
+                            <option value="600">600</option>
+                            </select>
+
+                            <input type="submit" id="btn_resize_canvas" class="btn btn-primary" name="submit" value="Resize Canvas"/>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        
+        
+        <form class="form-group" id="getImage" method="post" action="/client/getImage/">
+        {% csrf_token %}
+        {% block getImage %}
+        <script type="text/javascript">
+        $('#getImage').on('submit',function(e){
+            e.preventDefault();
+            //console.log("get image");
+            var form = new FormData($(this)[0]);
+            $.ajax({
+                type:'POST',
+                url:'/client/getImage/',
+                data:form,
+                processData: false,
+                contentType: false,
+                success:function(data){
+                        
+                        if(data=="Image Not Loaded!"){
+                            alert("Image Not Loaded!");
+                        }
+                        else{
+                            //console.log("<img src=\"/media/"+data+"/\" border=\"1\" width=\"700\">")
+                            alert("Showing Image!");
+                            $('#div_img').html("<img src=\"/media/"+data+"/\" border=\"1\" width=\"700\">");
+                            setTimeout(function(){
+                                var img=document.getElementById("current_img");
+                                var callback=function(img){
+                                var canvas = document.getElementById("cv");
+                                var ctx=canvas.getContext("2d");
+                                ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+                                ctx.drawImage(img,0,0);}
+                                if(img.complete){
+                                    callback(img);
+                                }
+                                else{
+                                    img.onload=callback;
+                                }
+                            }, 2000); 
+                        }
+                        
+                },
+                failure:function(){
+                        alert("fail");
+                }
+            });
+        });
+        </script>
+        {% endblock %}
+        <p><br>
+            <span class="d-inline-block" tabindex="0" data-toggle="tooltip" title="Display current version of image">
+                <input type="submit" id="btn_getImage" class="btn btn-primary btn-lg " name="submit" value="Get Image"/>
+            </span>
+        </p>
+        </form>
+    
+        <br>
+        <br>
+        <b>Images List</b>
+        {% if imagelist %}
+            <table border="1" cellspacing="1">
+            <tr>
+                <th>name</th>
+                <th>owner</th>
+                <th>rules</th>
+                <th>defaultAction</th>
+                <th>image</th>
+            </tr>
+        {% for im in imagelist %}
+            <tr>
+            {% comment %} First column, delete and update links {% endcomment %}
+                <td>{{ im.name }}</td>
+                <td>{{ im.owner }}</td>
+                <td>{{ im.rules }}</td>
+                <td>{{ im.defaultAction }}</td>
+
+                <td><img src="/media/{{ im.imagex }}" border="0" width="60"></img></td>
+            </tr>
+        {% endfor %}
+            </table>
+        {% else %}
+            No images exist.
+        {% endif %}
+        {% else %}
+        <p>You are not logged in</p>
+        <a href="{% url 'login' %}">Login</a>
+        {% endif %}
+    </div>
+</div>
+ {% endblock %}
+
+ <script type="text/javascript">
+    $(document).on('submit','#getImage',function(e){
+        e.preventDefault();
+        $.ajax({
+            type:'POST',
+            url:'/ajax/loadimage/',
+            data:{
+                imagex:$('#file')
+            }
+        });
+    });
+ </script>
+ <script type="text/javascript">
+    $(document).on('submit','#loadImage',function(e){
+        e.preventDefault();
+        $.ajax({
+            type:'POST',
+            url:'/ajax/loadimage/',
+            data:{
+                imagex:$('#file')
+            }
+        });
+    });
+ </script>

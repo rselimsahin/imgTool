@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if user.is_authenticated %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>        
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" >
+        <a class="navbar-brand" href="/client">
+            <img src="media/imgtool_icon_trans.png" width="30" height="30" alt="">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/client">Home <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/client/image">Images View</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/client/usergroup">UserGroup View</a>
+            </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <span class="navbar-text" style="color:aquamarine">
+                    User:{{ username }}
+                </span>
+                <li class="nav-item">
+                    <a class="nav-link" href="/client/pwscreen">Set Password</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/">Admin</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+<!--<p align="right">
+    User:{{ username }},
+    <a href="/client/pwscreen">Set Password</a>,
+    <a href="{% url 'logout' %}">Logout</a>,
+    <a href="/admin/">Admin</a>
+    <br>
+
+    <a href="/client">Home</a>,
+    <a href="/client/image"> Images View</a>,
+    <a href="/client/usergroup"> Usergroup View</a>
+</p>
+-->
+
+
+<div class="p-3 mb-2 bg-light text-dark">
+    <div id="div_main" class="container">
+        {% comment %} Required to add extra filter "lookup" {% endcomment %}
+
+        <p>{% if message %}
+        <strong>{{ message }}</strong>
+        {% endif %}
+        </p>
+        <div class="media">
+                <img src="media/imgtool_logo.png" class="align-self-start mr-3" width="100" height="100" >
+                <div class="media-body">
+                  <h5 class="display-4"><strong>imgTool </strong>Image Sharing Platform</h5>
+                  <strong>imgTool </strong>is a free to use image sharing platfrom. <strong>imgTool </strong>allows users to allow/deny/blur the freely selected parts
+                  <br>
+                    of images to the 
+                  target groups or individuals.
+                </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        <h5>Users and groups in our database is listed below</h5>
+        {% load auth_extras %}
+        <div class="row">
+            <div class="col-xl">
+                {% if ulist %}
+                    <table class="table table-bordered" style="width:80%" >
+                    <tr>
+                        <th>user </th>
+                        <th>groups </th>
+                    </tr>
+
+                {% for u in ulist %}
+                    <tr>
+                    {% comment %} First column, delete and update links {% endcomment %}
+                        <td>{{ u.username }}</td><td>{{ u.username|get_groups:"garbage" }}</td>
+                    </tr>
+                {% endfor %}
+                    </table>
+                {% else %}
+                    No users exist.
+                {% endif %}
+            </div>
+
+            <div class="col-xl">
+                {% if glist %}
+                <table class="table table-bordered" style="width:80%" >
+                    <tr>
+                        <th>group </th><th>users</th>
+                    </tr>
+
+
+                {% for g in glist %}
+                    <tr>
+                    {% comment %} First column, delete and update links {% endcomment %}
+                        <td>{{ g.name }}</td><td>{{ g.name|get_users:"garbage" }}</td>
+                    </tr>
+                {% endfor %}
+                    </table>
+                {% else %}
+                    No groups exist.
+                {% endif %}
+            </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        <br>
+        <h5>Images in our database is listed below</h5>
+        {% if imagelist %}
+        <table class="table table-bordered" style="width:100%" >
+            <tr>
+                <th>name </th><th>owner </th><th>image</th>
+            </tr>
+        {% for im in imagelist %}
+            <tr>
+            {% comment %} First column, delete and update links {% endcomment %}
+                <td>{{ im.name }}</td>
+                <td>{{ im.owner }}</td>
+                <td>{{ im.rules }}</td>
+
+                <td><img src="/media/{{ im.imagex }}" border="0" width="100" ="1"></img></td>
+            </tr>
+        {% endfor %}
+            </table>
+        {% else %}
+            No images exist.
+        {% endif %}
+        {% comment %}
+        <form action="#" method="get">
+        <input type="text" value="image location" name="location" size="1"/>
+        <input type="submit" class="btn" value="Load Image" name="mybtn">
+        </form>
+        <form action="#" method="get">
+        <input type="submit" class="btn" value="Get Image" name="mybtn2">
+        </form>
+        {% endcomment %}
+        {% else %}
+        <p>You are not logged in</p>
+        <a href="{% url 'login' %}">login</a>
+        {% endif %}
+    </div>
+</div>
+ {% endblock %}
+

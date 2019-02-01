@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block content %}
+{% if user.is_authenticated %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark" >
+        <a class="navbar-brand" href="/client">
+                <img src="media/imgtool_icon_trans.png" width="30" height="30" alt="">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav mr-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/client">Home </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/client/image">Images View</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/client/usergroup">UserGroup View<span class="sr-only">(current)</span></a>
+            </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <span class="navbar-text" style="color:aquamarine">
+                    User:{{ username }}
+                </span>
+                <li class="nav-item">
+                    <a class="nav-link" href="/client/pwscreen">Set Password</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/">Admin</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+<!--<p align="right">
+    User:{{ username }},
+    <a href="/client/pwscreen">Set Password</a>,
+    <a href="{% url 'logout' %}">Logout</a>,
+    <a href="/admin/">Admin</a>
+    <br>
+
+    <a href="/client">Home</a>,
+    <a href="/client/image"> Images View</a>,
+    <a href="/client/usergroup"> Usergroup View</a>
+</p>
+-->
+
+
+{% load auth_extras %}
+
+
+<div id="div_main" class="container">
+    <br>
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-xl">
+                {% if ulist %}
+                <table class="table table-bordered" style="width:80%" >
+                    <tr>
+                        <th>user </th><th>groups </th>
+                    </tr>
+
+                {% for u in ulist %}
+                    <tr>
+                    {% comment %} First column, delete and update links {% endcomment %}
+                        <td>{{ u.username }}</td><td>{{ u.username|get_groups:"garbage" }}</td>
+                    </tr>
+                {% endfor %}
+                    </table>
+                {% else %}
+                    No users exist.
+                {% endif %}
+            </div>
+            
+            <div class="col-xl">
+                {% if glist %}
+                <table class="table table-bordered" style="width:80%" >
+                    <tr>
+                        <th>group </th><th>users</th>
+                    </tr>
+                    {% for g in glist %}
+                        <tr>
+                            <td>{{ g.name }}</td><td>{{ g.name|get_users:"garbage" }}</td>
+                        </tr>
+                    {% endfor %}
+                    </table>
+                {% else %}
+                    No groups exist.
+                {% endif %}
+
+
+            </div>
+
+        </div>
+        <br>
+        <br>
+        <br>
+        <div class="row">
+
+            <div class="col-xl">
+                <b>Check membership</b>
+                <form action="/client/isMember/" id="id_isMember"method="post">
+                {% csrf_token %}
+                {% block isMember %}
+                <script type="text/javascript">
+                $('#id_isMember').on('submit',function(e){
+                    e.preventDefault();
+                    console.log("is member?");
+                    $.ajax({
+                        type:'POST',
+                        url:'/client/isMember/',
+                        data:{
+                            username:$('#id_username').val(),
+                            groupname:$('#id_groupname').val(),
+                            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                        },
+                        success:function(data){
+                            if(data=="True"){
+                                $('#div_isMember_out').html("True");
+                            }
+                            else{
+                                $('#div_isMember_out').html("False");
+                            }
+                            console.log(data);
+                        },
+                        failure:function(){
+                                alert("fail");
+                        }
+                    });
+                });
+                </script>
+                {% endblock %}
+                <label for="username">Username:</label>
+                <input class="form-control" id="id_username" style="width: 60%" type="text" name="username" >
+                <label for="groupname">Groupname:</label>
+                <input class="form-control" id="id_groupname" style="width: 60%" type="text" name="groupname" >
+                <input class="btn btn-primary" type="submit" name="submit" value="Is member"/>
+                </form>
+                <div id="div_isMember_out"></div>
+            </div>
+
+
+            <div class="col-xl">
+                <b>Get groups of user</b>
+                <form id="id_getGroups" action="/client/getGroups/" method="post">
+                {% csrf_token %}
+                {% block getGroups %}
+                <script type="text/javascript">
+                $('#id_getGroups').on('submit',function(e){
+                    e.preventDefault();
+                    console.log("get groups");
+                    $.ajax({
+                        type:'POST',
+                        url:'/client/getGroups/',
+                        data:{
+                            username:$('#id_username2').val(),
+                            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                        },
+                        success:function(data){
+                            $('#div_getGroups_out').html(data)
+                            console.log(data);
+                        },
+                        failure:function(){
+                                alert("fail");
+                        }
+                    });
+                });
+                </script>
+                {% endblock %}
+                <label for="username">Username:</label>
+                <input id="id_username2" class="form-control" style="width: 60%" type="text" name="username" >
+                <input class="btn btn-primary" type="submit" name="submit" value="Get groups"/>
+                </form>
+                <div id="div_getGroups_out"></div>
+            </div>
+
+            <div class="col-xl">
+                <b>Get users of group</b>
+                <form action="/client/getUsers/" id="id_getUsers" method="post">
+                {% csrf_token %}
+                {% block getUsers %}
+                <script type="text/javascript">
+                $('#id_getUsers').on('submit',function(e){
+                    e.preventDefault();
+                    console.log("get users");
+                    $.ajax({
+                        type:'POST',
+                        url:'/client/getUsers/',
+                        data:{
+                            groupname:$('#id_groupname2').val(),
+                            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val()
+                        },
+                        success:function(data){
+                            $('#div_getUsers_out').html(data);
+                            console.log(data);
+                        },
+                        failure:function(){
+                                alert("fail");
+                        }
+                    });
+                });
+                </script>
+                {% endblock %}
+                <label for="groupname">Groupname:</label>
+                <input class="form-control" id="id_groupname2" style="width: 60%" type="text" name="groupname" >
+                <input class="btn btn-primary" type="submit" name="submit" value="Get users"/>
+                </form>
+                <div id="div_getUsers_out"></div>
+            </div>
+            
+
+            {% else %}
+            <p>You are not logged in</p>
+            <a href="{% url 'login' %}">login</a>
+            {% endif %}
+            </div>
+    </div>
+</div>
+ {% endblock %}
+
